@@ -12,8 +12,6 @@ export default function Home() {
   const [path, setPath] = useState<string>('');
   const [response, setResponse] = useState<string>('{}');
 
-
-
   const fetchRoutes = async () => {
     const res = await fetch('/api/mock');
     const data = await res.json();
@@ -25,17 +23,16 @@ export default function Home() {
     const res = await fetch('/api/add-route', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ method, path, response: response }),
+      body: JSON.stringify({ method, path, response: JSON.parse(response) }),
     });
-    // const result = await res.json();
-    // alert(result.message);
-    console.log(res)
+    const result = await res.json();
+    alert(result.message);
     fetchRoutes();
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10">
-      <h1 className="text-4xl font-bold text-gray-800 mb-8">Mock Server UI</h1>
+      <h1 className="text-4xl font-bold text-gray-800 mb-8">News Server UI</h1>
       <form onSubmit={addRoute} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6 w-full max-w-lg">
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -75,8 +72,6 @@ export default function Home() {
             placeholder='{"key": "value"}'
             className="block w-full border border-gray-300 rounded py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-200"
           />
-
-
         </div>
         <div className="flex items-center justify-between">
           <button
