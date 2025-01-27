@@ -1,9 +1,21 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ApiErrorMesage } from "@/types/AxiosErrorMessage";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { FormEvent, useState } from "react";
 
-export default function ApiCreateForm() {
+
+/**
+ * @description refetchList
+ * */ 
+type ApiCreateFormProps = {
+  refetchList: () => void;
+}
+
+export default function ApiCreateForm(props: ApiCreateFormProps) {
 
   const [method, setMethod] = useState<string>('GET');
   const [path, setPath] = useState<string>('');
@@ -15,25 +27,33 @@ export default function ApiCreateForm() {
     return axios.post('/api/add-route', JSON.stringify({ method, path, response: response }));
   };
 
-  const addRouteQuery = useMutation({ mutationFn: addRoute });
+  const addRouteQuery = useMutation({
+    mutationFn: addRoute,
+    onError: (error: ApiErrorMesage) => {
+      console.log("Error occurred:", error.response?.data?.message);
+    },
+    onSuccess: async () => {
+      props.refetchList();
+    }
+  });
 
 
 
   return (
     <>
       {addRouteQuery.isError && (
-        <div className="bg-red-100 border-t-4 border-red-500 rounded-b text-red-900 px-4 py-3 shadow-md mb-4" role="alert">
-          <p>{addRouteQuery.error.message}</p>
+        <div className="bg-red-100 border-t-4 border-red-500 rounded-b text-red-900 px-4 py-3 mb-4" role="alert">
+          <p>{addRouteQuery.error.response?.data?.message || 'Unable to create API'}</p>
         </div>
       )}
       {addRouteQuery.isSuccess && (
-        <div className="bg-green-100 border-t-4 border-green-500 rounded-b text-green-900 px-4 py-3 shadow-md mb-4" role="alert">
+        <div className="bg-green-100 border-t-4 border-green-500 rounded-b text-green-900 px-4 py-3 mb-4" role="alert">
           <p>Route created successfully</p>
         </div>
       )}
-      <form onSubmit={addRouteQuery.mutate} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-6 w-full max-w-lg">
+      <form onSubmit={addRouteQuery.mutate} className=" rounded-md px-8 pt-6 pb-8 mb-6 w-full bg-card">
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block text-sm font-bold mb-2">
             Method:
           </label>
           <Select onValueChange={(value) => setMethod(value)} defaultValue={method}>
@@ -49,39 +69,39 @@ export default function ApiCreateForm() {
           </Select>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block text-sm font-bold mb-2">
             Path:
           </label>
-          <input
+          <Input
             type="text"
             value={path}
             onChange={(e) => setPath(e.target.value)}
             required
             placeholder="/example"
-            className="block w-full border border-gray-300 rounded py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block text-sm font-bold mb-2">
             Response:
           </label>
-          <textarea
+          <Textarea
             value={response}
             onChange={(e) => setResponse(e.target.value)}
             required
             placeholder='{"key": "value"}'
-            className="block w-full border border-gray-300 rounded py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-200"
           />
 
 
         </div>
-        <div className="flex items-center justify-between">
-          <button
-            disabled={addRouteQuery.isPending}
+        <div className="text-right">
+          <Button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300">
+            disabled={addRouteQuery.isPending}
+            variant="default"
+            size="default"
+          >
             Add Route
-          </button>
+          </Button>
         </div>
       </form>
     </>

@@ -1,73 +1,60 @@
 "use client"
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ApiCreateForm from './_components/ApiCreateForm';
-
+import { useQuery } from "@tanstack/react-query";
+import axios from 'axios';
+import { ApiDetail } from './_components/ApiDetail';
 
 type Route = {
   method: string;
   path: string;
 };
 
+type ApiDetail = {
+  data: string;
+}
+
+
 export default function Home() {
-  const [routes, setRoutes] = useState<Route[]>([]);
+
+  const fetchList = async () => axios.get('/api/mock-list');
 
 
+  
+  const { data: routes, isLoading, refetch: refetchList } = useQuery({
+    queryKey: ['routes'],
+    queryFn: fetchList,
+  });
 
-  const fetchRoutes = async () => {
-    const res = await fetch('/api/mock');
-    const data = await res.json();
-    setRoutes(data);
-  };
-
-
-  useEffect(() => {
-    fetchRoutes();
-  }, []);
-
-  function handleOpenChange(id: string): void {
-    console.log(id);
-  }
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // With SSR, we usually want to set some default staleTime
-            // above 0 to avoid refetching immediately on the client
-            staleTime: 60 * 1000,
-          },
-        },
-      }),
-  )
+  
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Mock Server UI</h1>
-
-        <ApiCreateForm />
-        
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Current Routes:</h2>
-        <div className='flex w-9/12'>
+    <div className="min-h-screen grid grid-cols-[2fr_3fr] gap-4 py-10">
+      <div>
+        <ApiCreateForm refetchList={refetchList} />
+      </div>
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Available APIs</h2>
+        {isLoading && <div>Loading...</div>}
+        <div className='flex w-100'>
           <Accordion type="single" collapsible className='w-full'>
-            {routes.map((route, index) => (
+            {routes?.data.map((route: Route, index: number) => (
               <AccordionItem value={`item-${index}`} key={index}>
-                <AccordionTrigger onClick={() => handleOpenChange(route.path)}>{route.method} - {route.path}</AccordionTrigger>
+                <AccordionTrigger>{route.method} - {route.path}</AccordionTrigger>
                 <AccordionContent>
-                  Yes. It adheres to the WAI-ARIA design pattern.
+                  <ApiDetail path={route.path} method={route.method} />
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
         </div>
       </div>
-    </QueryClientProvider>
+    </div>
   );
 }
