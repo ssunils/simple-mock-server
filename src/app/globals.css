@@ -71,3 +71,10 @@ body {
   }
 }
 
+
+.ace_editor {
+  filter: invert(1);
+}
+.dark .ace_editor {
+  filter: invert(0);
+}

@@ -17,7 +17,7 @@ export const ApiDetail = (props: DetailProps) => {
     return (
         <div>
             {isLoading && <div>Loading...</div>}
-            {error && <div>Error: {error.message}</div>}
+            {error && <div className="text-red-500">Error: {error.message}</div>}
             {data && <div>{JSON.stringify(data.data)}</div>}
         </div>
     );

@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 
-export async function listApiRoutes(): Promise<ApiRoute[]> {
+async function listApiRoutes(): Promise<ApiRoute[]> {
   const apiRoutes: ApiRoute[] = [];
 
   // Helper function to recursively read directories

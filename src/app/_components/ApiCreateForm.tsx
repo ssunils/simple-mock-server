@@ -1,7 +1,7 @@
+import JSONEditor from "@/components/custom/CodeEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { ApiErrorMesage } from "@/types/AxiosErrorMessage";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -10,7 +10,7 @@ import { FormEvent, useState } from "react";
 
 /**
  * @description refetchList
- * */ 
+ * */
 type ApiCreateFormProps = {
   refetchList: () => void;
 }
@@ -20,6 +20,7 @@ export default function ApiCreateForm(props: ApiCreateFormProps) {
   const [method, setMethod] = useState<string>('GET');
   const [path, setPath] = useState<string>('');
   const [response, setResponse] = useState<string>('{}');
+  const [error, setError] = useState<string>('');
 
 
   const addRoute = async (e: FormEvent) => {
@@ -37,7 +38,16 @@ export default function ApiCreateForm(props: ApiCreateFormProps) {
     }
   });
 
-
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      JSON.parse(response);
+    } catch {
+      setError('Invalid JSON format.');
+      return;
+    }
+    addRouteQuery.mutate(e);
+  };
 
   return (
     <>
@@ -51,7 +61,7 @@ export default function ApiCreateForm(props: ApiCreateFormProps) {
           <p>Route created successfully</p>
         </div>
       )}
-      <form onSubmit={addRouteQuery.mutate} className=" rounded-md px-8 pt-6 pb-8 mb-6 w-full bg-card">
+      <form onSubmit={handleSubmit} className=" rounded-md px-8 pt-6 pb-8 mb-6 w-full bg-card">
         <div className="mb-4">
           <label className="block text-sm font-bold mb-2">
             Method:
@@ -84,16 +94,12 @@ export default function ApiCreateForm(props: ApiCreateFormProps) {
           <label className="block text-sm font-bold mb-2">
             Response:
           </label>
-          <Textarea
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            required
-            placeholder='{"key": "value"}'
-          />
-
-
+          <JSONEditor onChange={setResponse} value={response} />
         </div>
         <div className="text-right">
+          <div>
+            {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
+          </div>
           <Button
             type="submit"
             disabled={addRouteQuery.isPending}
